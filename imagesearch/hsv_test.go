@@ -86,7 +86,7 @@ func generateTestColors() []testColor {
 
 func round(n float64) int64 {
 	if n < 0 {
-		return int64(n)
+		return int64(n - 0.5)
 	}
 	return int64(n + 0.5)
 }
@@ -95,33 +95,10 @@ func Test_NewHSVFromRGB(t *testing.T) {
 
 	for _, c := range generateTestColors() {
 		calculatedHsv := NewHSVFromRGB(c.rgba)
-		t.Logf("%f, %s\n", calculatedHsv.H, c.name)
+
 		assert.Equal(t, int64(c.hsv.H), round(calculatedHsv.H), c.name) // round to percentage
 		assert.Equal(t, int64(c.hsv.S), round(calculatedHsv.S*100))     // round to percentage
 		assert.Equal(t, int64(c.hsv.V), round(calculatedHsv.V*100))     // round to percentage
 	}
 
-	/*
-		for _, line := range strings.Split(table, "\n") {
-			fields := strings.Fields(line)
-			if len(fields) == 0 {
-				continue
-			}
-			rgb := fields[2]
-			rgb = strings.TrimPrefix(strings.TrimSuffix(rgb, ")"), "(")
-			fragments := strings.Split(rgb, ",")
-
-			hsv := fields[3]
-			hsv = strings.TrimPrefix(strings.TrimSuffix(hsv, ")"), "(")
-			hsvFragments := strings.Split(hsv, ",")
-
-			fmt.Printf("testColor{\"%s\", color.RGBA{%s, %s, %s, 0}, HSVColor{%s, %s, %s}},\n",
-				fields[0],
-				fragments[0], fragments[1], fragments[2],
-				strings.TrimSuffix(hsvFragments[0], "°"),
-				strings.TrimSuffix(hsvFragments[1], "%"),
-				strings.TrimSuffix(hsvFragments[2], "%"),
-			)
-
-		}*/
 }

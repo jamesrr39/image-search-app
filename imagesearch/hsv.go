@@ -2,7 +2,6 @@ package imagesearch
 
 import (
 	"image/color"
-	"log"
 	"math"
 )
 
@@ -34,13 +33,6 @@ func NewHSVFromRGB(rgb color.RGBA) *HSVColor {
 
 	// h
 	var h float64
-
-	// debug navy: 0, 0, 128, 0
-	// bDash: 128/255
-	/*
-		underSqRoot := math.Pow(rDash, 2) + math.Pow(gDash, 2) + math.Pow(bDash, 2) - ((rDash * gDash) + (rDash * bDash) + (gDash * bDash))
-		beforeSqRoot := rDash - ((gDash / 2) + (bDash / 2))
-	*/
 	/*
 
 		if G >= B
@@ -64,10 +56,8 @@ func NewHSVFromRGB(rgb color.RGBA) *HSVColor {
 	}
 	arccosRadians := math.Acos(inBrackets)
 
-	log.Printf("%f :: \n", beforeSqRoot)
 	// pi radians = 180 deg
 	arccosDeg := arccosRadians * 180 / math.Pi
-	log.Printf("%f :: \n", arccosDeg)
 	if g >= b {
 		h = arccosDeg
 	} else {
