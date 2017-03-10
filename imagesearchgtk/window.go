@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"image"
 	"image-search-app/imagesearch"
-	"image-search-app/imagesearchcache"
+	"image-search-app/imagesearchdal"
 	_ "image/gif"  // decode
 	_ "image/jpeg" // decode
 	_ "image/png"  // decode
@@ -22,7 +22,7 @@ import (
 )
 
 type Window struct {
-	cache       *imagesearchcache.ImageSearchCache
+	dal         *imagesearchdal.ImageSearchDAL
 	window      *gtk.Window
 	seedPicture *gtk.Image
 	matchesHbox *gtk.HBox
@@ -32,8 +32,8 @@ type WindowOptions struct {
 	SeedPicturePath string
 }
 
-func NewWindow(cache *imagesearchcache.ImageSearchCache, options *WindowOptions) *Window {
-	window := &Window{cache, gtk.NewWindow(gtk.WINDOW_TOPLEVEL), gtk.NewImage(), gtk.NewHBox(true, 1)}
+func NewWindow(dal *imagesearchdal.ImageSearchDAL, options *WindowOptions) *Window {
+	window := &Window{dal, gtk.NewWindow(gtk.WINDOW_TOPLEVEL), gtk.NewImage(), gtk.NewHBox(true, 1)}
 
 	matchesViewport := gtk.NewViewport(nil, nil)
 
@@ -95,14 +95,14 @@ func (window *Window) setMainPicture(path string) {
 
 	log.Printf("image descriptor: %v\n", descriptor)
 	go func() {
-		matches := window.cache.Search(descriptor)
+		matches := window.dal.Search(descriptor)
 		gdk.ThreadsEnter()
 		window.setMatchesPictures(matches)
 		gdk.ThreadsLeave()
 	}()
 }
 
-func (window *Window) setMatchesPictures(matches []*imagesearchcache.DescriptorWithMatchScore) {
+func (window *Window) setMatchesPictures(matches []*imagesearchdal.DescriptorWithMatchScore) {
 
 	children := window.matchesHbox.GetChildren()
 	children.ForEach(func(data unsafe.Pointer, d interface{}) {

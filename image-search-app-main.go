@@ -1,9 +1,8 @@
 package main
 
 import (
-	"image-search-app/imagesearchcache"
+	"image-search-app/imagesearchdal"
 	"image-search-app/imagesearchgtk"
-	"log"
 
 	"github.com/mattn/go-gtk/gtk"
 
@@ -35,9 +34,17 @@ func main() {
 }
 
 func run() error {
-	caches, err := buildCaches()
+
+	dal, err := imagesearchdal.NewImageSearchDAL(cachesLocation)
 	if nil != err {
 		return err
+	}
+
+	if "" != *rootPath {
+		err := dal.ScanDir(*rootPath)
+		if nil != err {
+			return err
+		}
 	}
 
 	options := &imagesearchgtk.WindowOptions{SeedPicturePath: *seedPicturePath}
@@ -46,23 +53,8 @@ func run() error {
 
 	glib.ThreadInit()
 	gdk.ThreadsEnter()
-	imagesearchgtk.NewWindow(caches, options)
+	imagesearchgtk.NewWindow(dal, options)
 
 	gtk.Main()
 	return nil
-}
-
-// load existing caches and add image descriptors for images under `rootPath`
-func buildCaches() (*imagesearchcache.ImageSearchCache, error) {
-	cache, err := imagesearchcache.NewImageSearchCache(cachesLocation)
-	if nil != err {
-		return nil, err
-	}
-
-	if "" == *rootPath {
-		log.Println("no rootPath supplied, so skipping filewalk and using only what is already in caches")
-		return cache, nil
-	}
-
-	return cache, nil
 }

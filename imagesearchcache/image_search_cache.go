@@ -16,15 +16,10 @@ type ImageSearchCache struct {
 	cachesLocation string
 
 	mu            sync.Mutex
-	descriptorMap map[string]*PersistedImageDescriptor
+	descriptorMap map[string]*imagesearch.PersistedImageDescriptor
 }
 
-type PersistedImageDescriptor struct {
-	*imagesearch.ImageDescriptor
-	LastDiskLocation string
-}
-
-func NewImageSearchCache(cachesLocation string) (*ImageSearchCache, error) {
+func NewImageSearchCacheAndScan(cachesLocation string) (*ImageSearchCache, error) {
 	cache := &ImageSearchCache{
 		cachesLocation: cachesLocation,
 		mu:             sync.Mutex{},
@@ -42,7 +37,7 @@ func NewImageSearchCache(cachesLocation string) (*ImageSearchCache, error) {
 	return cache, nil
 }
 
-func (cache *ImageSearchCache) EnsureInCache(descriptor *PersistedImageDescriptor) error {
+func (cache *ImageSearchCache) EnsureInCache(descriptor *imagesearch.PersistedImageDescriptor) error {
 	descriptorFromCache := cache.Get(descriptor.Sha1)
 	if nil != descriptorFromCache {
 		log.Printf("descriptor for %s is already in cache (sha1: %s)\n", descriptor.LastDiskLocation, descriptor.Sha1)
@@ -70,7 +65,7 @@ func (cache *ImageSearchCache) EnsureInCache(descriptor *PersistedImageDescripto
 
 }
 
-func (cache *ImageSearchCache) Get(sha1 string) *PersistedImageDescriptor {
+func (cache *ImageSearchCache) Get(sha1 string) *imagesearch.PersistedImageDescriptor {
 	return cache.descriptorMap[sha1]
 }
 
@@ -81,7 +76,7 @@ func (cache *ImageSearchCache) ScanCachesDir() error {
 		return err
 	}
 
-	imageDescriptorMap := make(map[string]*PersistedImageDescriptor)
+	imageDescriptorMap := make(map[string]*imagesearch.PersistedImageDescriptor)
 
 	for _, fileInfo := range fileInfos {
 		file, err := os.Open(filepath.Join(cache.cachesLocation, descriptorCachesFolderName, fileInfo.Name()))
@@ -90,7 +85,7 @@ func (cache *ImageSearchCache) ScanCachesDir() error {
 		}
 
 		decoder := gob.NewDecoder(file)
-		var descriptor *PersistedImageDescriptor
+		var descriptor *imagesearch.PersistedImageDescriptor
 		err = decoder.Decode(&descriptor)
 		if nil != err {
 			return err
@@ -104,8 +99,8 @@ func (cache *ImageSearchCache) ScanCachesDir() error {
 	return nil
 }
 
-func (cache *ImageSearchCache) GetAll() []*PersistedImageDescriptor {
-	var descriptors []*PersistedImageDescriptor
+func (cache *ImageSearchCache) GetAll() []*imagesearch.PersistedImageDescriptor {
+	var descriptors []*imagesearch.PersistedImageDescriptor
 
 	for _, descriptor := range cache.descriptorMap {
 		descriptors = append(descriptors, descriptor)

@@ -1,4 +1,4 @@
-package imagesearchcache
+package imagesearchdal
 
 import (
 	"image-search-app/imagesearch"
@@ -9,14 +9,14 @@ import (
 
 type DescriptorWithMatchScore struct {
 	Score      float64
-	Descriptor *PersistedImageDescriptor
+	Descriptor *imagesearch.PersistedImageDescriptor
 }
 
-func (cache *ImageSearchCache) Search(seedImageDescriptor *imagesearch.ImageDescriptor) []*DescriptorWithMatchScore {
+func (dal *ImageSearchDAL) Search(seedImageDescriptor *imagesearch.ImageDescriptor) []*DescriptorWithMatchScore {
 
 	var descriptorsWithScore []*DescriptorWithMatchScore
 
-	descriptorsInCache := cache.GetAll()
+	descriptorsInCache := dal.cache.GetAll()
 	for _, descriptorInCache := range descriptorsInCache {
 		matchScore := descriptorInCache.CalculateBinMatchScore(seedImageDescriptor)
 		descriptorsWithScore = append(descriptorsWithScore, &DescriptorWithMatchScore{matchScore, descriptorInCache})
