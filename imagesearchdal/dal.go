@@ -3,16 +3,14 @@ package imagesearchdal
 import (
 	"bytes"
 	"errors"
+	"fmt"
 	"image-search-app/imagesearch"
 	"image-search-app/imagesearchcache"
 	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
-	"runtime"
 	"strings"
-	"sync/atomic"
-	"time"
 )
 
 type ImageSearchDAL struct {
@@ -27,7 +25,13 @@ func NewImageSearchDAL(cachesFolderLocation string) (*ImageSearchDAL, error) {
 	return &ImageSearchDAL{cache}, nil
 }
 
-func (dal *ImageSearchDAL) ScanDir(dirpath string) error {
+func (dal *ImageSearchDAL) ScanDir(dirpath string, qtyBins imagesearch.QtyBins) error {
+	var currentPath string
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Printf("panicked on path: %s\n", currentPath)
+		}
+	}()
 
 	var paths []string
 
@@ -51,48 +55,56 @@ func (dal *ImageSearchDAL) ScanDir(dirpath string) error {
 		return err
 	}
 
-	var maxOps int32 = int32(runtime.NumCPU())
-	var opsRunning int32
-	for {
-
+	for _, path := range paths {
+		currentPath = path
+		err := dal.EnsureInCache(path, qtyBins)
 		if nil != err {
-			break
+			return err
 		}
-
-		isFinished := len(paths) == 0 && opsRunning == 0
-		if isFinished {
-			break
-		}
-
-		if maxOps <= opsRunning {
-			continue
-		}
-
-		path := paths[0]
-		log.Printf("p: %s\n", path)
-		paths = paths[1:]
-
-		atomic.AddInt32(&opsRunning, 1)
-		go func(path string) {
-			//defer atomic.AddInt32(&opsRunning, -1)
-			log.Printf("Now %d ops running. Running %s\n", opsRunning, path)
-
-			start := time.Now()
-			innerErr := dal.EnsureInCache(path)
-			if nil != innerErr {
-				err = innerErr
-			}
-			end := time.Now()
-			log.Printf("took %v to ensure %s in cache\n", end.Sub(start).Nanoseconds()/1000, path)
-
-			atomic.AddInt32(&opsRunning, -1)
-		}(path)
 	}
+	/*
+		var maxOps int32 = int32(runtime.NumCPU())
+		var opsRunning int32
+		for {
 
+			if nil != err {
+				break
+			}
+
+			isFinished := len(paths) == 0 && opsRunning == 0
+			if isFinished {
+				break
+			}
+
+			if maxOps <= opsRunning {
+				continue
+			}
+
+			path := paths[0]
+			log.Printf("p: %s\n", path)
+			paths = paths[1:]
+
+			atomic.AddInt32(&opsRunning, 1)
+			go func(path string) {
+				//defer atomic.AddInt32(&opsRunning, -1)
+				log.Printf("Now %d ops running. Running %s\n", opsRunning, path)
+
+				start := time.Now()
+				innerErr := dal.EnsureInCache(path)
+				if nil != innerErr {
+					err = innerErr
+				}
+				end := time.Now()
+				log.Printf("took %v to ensure %s in cache\n", end.Sub(start).Nanoseconds()/1000, path)
+
+				atomic.AddInt32(&opsRunning, -1)
+			}(path)
+		}
+	*/
 	return nil
 }
 
-func (dal *ImageSearchDAL) EnsureInCache(path string) error {
+func (dal *ImageSearchDAL) EnsureInCache(path string, qtyBins imagesearch.QtyBins) error {
 
 	fileBytes, err := ioutil.ReadFile(path)
 	if nil != err {
@@ -112,7 +124,7 @@ func (dal *ImageSearchDAL) EnsureInCache(path string) error {
 		return nil // already in cache
 	}
 
-	descriptor, err := imagesearch.FileDescriptorFromFileBytes(fileBytes)
+	descriptor, err := imagesearch.FileDescriptorFromFileBytes(fileBytes, qtyBins)
 	if nil != err {
 		log.Printf("error reading %s. Error: %s\n", path, err)
 		return errors.New("error reading " + path + ". Error: " + err.Error())

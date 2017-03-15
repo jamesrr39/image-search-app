@@ -6,6 +6,8 @@ import (
 
 	"github.com/mattn/go-gtk/gtk"
 
+	"image-search-app/imagesearch"
+
 	"github.com/jamesrr39/goutil/user"
 	"github.com/mattn/go-gtk/gdk"
 	"github.com/mattn/go-gtk/glib"
@@ -13,10 +15,12 @@ import (
 )
 
 var (
-	rootPath        = kingpin.Flag("rootpath", "set a path to scan under. If blank, only the cache will be used for the search").String()
+	rootPath        = kingpin.Arg("rootpath", "set a path to scan under.").Required().String()
 	seedPicturePath = kingpin.Arg("seed picture path", "filepath to the seed picture to search by. If blank, no picture is selected").String()
 	cachesLocation  string
 )
+
+var defaultBins = imagesearch.NewQtyBins(8, 12, 3)
 
 func main() {
 	kingpin.Parse()
@@ -41,13 +45,17 @@ func run() error {
 	}
 
 	if "" != *rootPath {
-		err := dal.ScanDir(*rootPath)
+		expandedRootPath, err := user.ExpandUser(*rootPath)
+		if nil != err {
+			return err
+		}
+		err = dal.ScanDir(expandedRootPath, defaultBins)
 		if nil != err {
 			return err
 		}
 	}
 
-	options := &imagesearchgtk.WindowOptions{SeedPicturePath: *seedPicturePath}
+	options := &imagesearchgtk.WindowOptions{SeedPicturePath: *seedPicturePath, QtyBins: defaultBins}
 
 	gtk.Init(nil)
 
