@@ -10,11 +10,17 @@ import (
 	_ "image/jpeg"                         // decode
 	_ "image/png"                          // decode
 	"io"
+	"io/ioutil"
 
 	"github.com/rwcarlsen/goexif/exif"
 )
 
-func FileDescriptorFromFileBytes(fileBytes []byte, qtyBins QtyBins) (*ImageDescriptor, error) {
+func FileDescriptorFromFile(file io.Reader, qtyBins QtyBins) (*ImageDescriptor, error) {
+
+	fileBytes, err := ioutil.ReadAll(file) // todo scanners
+	if nil != err {
+		return nil, err
+	}
 
 	picture, _, err := image.Decode(bytes.NewBuffer(fileBytes))
 	if nil != err {
@@ -24,7 +30,7 @@ func FileDescriptorFromFileBytes(fileBytes []byte, qtyBins QtyBins) (*ImageDescr
 	exifData, err := exif.Decode(bytes.NewBuffer(fileBytes))
 	if nil == err && nil != exifData {
 		pic, err := imageprocessingutil.RotateAndTransformPictureByExifData(picture, *exifData)
-		if nil != err {
+		if nil == err {
 			picture = pic
 		}
 	}
@@ -33,6 +39,7 @@ func FileDescriptorFromFileBytes(fileBytes []byte, qtyBins QtyBins) (*ImageDescr
 	if nil != err {
 		return nil, err
 	}
+
 	return NewImageDescriptor(fileHash, picture, qtyBins), nil
 }
 

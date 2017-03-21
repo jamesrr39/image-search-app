@@ -2,6 +2,7 @@ package searchers
 
 import (
 	"image-search-app/imagesearch"
+	"log"
 	"math"
 )
 
@@ -21,6 +22,10 @@ func (search *ChiDistanceSearchImpl1) Score(seedImage, imageBeingScored *imagese
 
 	for index, vBin := range seedImage.VBins {
 		vScore += search.calcOneChiDistance(vBin, imageBeingScored.VBins[index])
+	}
+
+	if math.IsNaN(hScore) {
+		log.Printf("NaN match. seed: %v, comparator %v\n", seedImage, imageBeingScored)
 	}
 
 	return imagesearch.MatchScore(hScore)

@@ -44,15 +44,13 @@ func run() error {
 		return err
 	}
 
-	if "" != *rootPath {
-		expandedRootPath, err := user.ExpandUser(*rootPath)
-		if nil != err {
-			return err
-		}
-		err = dal.ScanDir(expandedRootPath, defaultBins)
-		if nil != err {
-			return err
-		}
+	expandedRootPath, err := user.ExpandUser(*rootPath)
+	if nil != err {
+		return err
+	}
+	err = dal.ScanDir(expandedRootPath, defaultBins)
+	if nil != err {
+		return err
 	}
 
 	options := &imagesearchgtk.WindowOptions{SeedPicturePath: *seedPicturePath, QtyBins: defaultBins}

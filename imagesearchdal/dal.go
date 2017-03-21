@@ -1,12 +1,8 @@
 package imagesearchdal
 
 import (
-	"bytes"
-	"errors"
-	"fmt"
 	"image-search-app/imagesearch"
 	"image-search-app/imagesearchcache"
-	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
@@ -18,20 +14,17 @@ type ImageSearchDAL struct {
 }
 
 func NewImageSearchDAL(cachesFolderLocation string) (*ImageSearchDAL, error) {
-	cache, err := imagesearchcache.NewImageSearchCacheAndScan(cachesFolderLocation)
+	cache, err := imagesearchcache.NewImageSearchCache(cachesFolderLocation)
 	if nil != err {
 		return nil, err
 	}
+	cache.DebugDump()
 	return &ImageSearchDAL{cache}, nil
 }
 
 func (dal *ImageSearchDAL) ScanDir(dirpath string, qtyBins imagesearch.QtyBins) error {
-	var currentPath string
-	defer func() {
-		if r := recover(); r != nil {
-			fmt.Printf("panicked on path: %s\n", currentPath)
-		}
-	}()
+	log.Println("cache before scan:")
+	dal.cache.DebugDump()
 
 	var paths []string
 
@@ -56,81 +49,24 @@ func (dal *ImageSearchDAL) ScanDir(dirpath string, qtyBins imagesearch.QtyBins) 
 	}
 
 	for _, path := range paths {
-		currentPath = path
+		//		currentPath = path
 		err := dal.EnsureInCache(path, qtyBins)
 		if nil != err {
 			return err
 		}
 	}
-	/*
-		var maxOps int32 = int32(runtime.NumCPU())
-		var opsRunning int32
-		for {
 
-			if nil != err {
-				break
-			}
-
-			isFinished := len(paths) == 0 && opsRunning == 0
-			if isFinished {
-				break
-			}
-
-			if maxOps <= opsRunning {
-				continue
-			}
-
-			path := paths[0]
-			log.Printf("p: %s\n", path)
-			paths = paths[1:]
-
-			atomic.AddInt32(&opsRunning, 1)
-			go func(path string) {
-				//defer atomic.AddInt32(&opsRunning, -1)
-				log.Printf("Now %d ops running. Running %s\n", opsRunning, path)
-
-				start := time.Now()
-				innerErr := dal.EnsureInCache(path)
-				if nil != innerErr {
-					err = innerErr
-				}
-				end := time.Now()
-				log.Printf("took %v to ensure %s in cache\n", end.Sub(start).Nanoseconds()/1000, path)
-
-				atomic.AddInt32(&opsRunning, -1)
-			}(path)
-		}
-	*/
+	log.Println("cache after scan:")
+	dal.cache.DebugDump()
 	return nil
 }
 
 func (dal *ImageSearchDAL) EnsureInCache(path string, qtyBins imagesearch.QtyBins) error {
-
-	fileBytes, err := ioutil.ReadFile(path)
+	file, err := os.Open(path)
 	if nil != err {
 		return err
 	}
-
-	// get sha1 hash
-	fileHash, err := imagesearch.HashOfFile(bytes.NewBuffer(fileBytes))
-	if nil != err {
-		return err
-	}
-
-	// if not in cache, build file descriptor
-	descriptorFromCache := dal.cache.Get(fileHash)
-	if nil != descriptorFromCache {
-		log.Printf("%s (%s) already in cache\n", fileHash, path)
-		return nil // already in cache
-	}
-
-	descriptor, err := imagesearch.FileDescriptorFromFileBytes(fileBytes, qtyBins)
-	if nil != err {
-		log.Printf("error reading %s. Error: %s\n", path, err)
-		return errors.New("error reading " + path + ". Error: " + err.Error())
-	}
-
-	err = dal.cache.EnsureInCache(&imagesearch.PersistedImageDescriptor{descriptor, path})
-
-	return nil
+	defer file.Close()
+	err = dal.cache.EnsureInCache(file, qtyBins, path)
+	return err
 }

@@ -96,38 +96,3 @@ func colorToRGBA(pixelColor color.Color) color.RGBA {
 	}
 	return eightBitColour
 }
-
-/*
-// CalculateBinMatchQuality scores the match between the descriptor bins and the bins in the other descriptor.
-func (descriptor *ImageDescriptor) CalculateBinMatchScore(otherDescriptor *ImageDescriptor) *MatchScore {
-	var hScore, sScore, vScore float64
-
-	for index, descriptorHBin := range descriptor.HBins {
-		decimalDifference := math.Abs(descriptorHBin.CountAsDecimal-otherDescriptor.HBins[index].CountAsDecimal) + 1
-		hScore = float64(1) / math.Pow(decimalDifference, 2)
-		if decimalDifference == float64(0) {
-			log.Printf("%s decimal difference was 0 hue", descriptor.Sha1)
-		}
-	}
-
-	for index, descriptorSBin := range descriptor.SBins {
-		decimalDifference := math.Abs(descriptorSBin.CountAsDecimal-otherDescriptor.SBins[index].CountAsDecimal) + 1
-		sScore += float64(1) / math.Pow(decimalDifference, 2)
-
-		if decimalDifference == float64(0) {
-			log.Printf("%s decimal difference was 0 sat", descriptor.Sha1)
-		}
-	}
-
-	for index, descriptorVBin := range descriptor.VBins {
-		decimalDifference := math.Abs(descriptorVBin.CountAsDecimal-otherDescriptor.VBins[index].CountAsDecimal) + 1
-		vScore += float64(1) / math.Pow(decimalDifference, 2)
-
-		if decimalDifference == float64(0) {
-			log.Printf("%s decimal difference was 0 val", descriptor.Sha1)
-		}
-	}
-
-	return NewMatchScore(hScore, sScore, vScore)
-}
-*/

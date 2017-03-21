@@ -41,7 +41,6 @@ type scoringAlgorithmDisplay struct {
 }
 
 var scoringAlgorithms = []scoringAlgorithmDisplay{
-	scoringAlgorithmDisplay{"Basic", &searchers.BasicScorer{}},
 	scoringAlgorithmDisplay{"Chi1", &searchers.ChiDistanceSearchImpl1{}},
 }
 

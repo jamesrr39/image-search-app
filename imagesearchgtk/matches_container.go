@@ -34,7 +34,12 @@ func (matchesContainer *MatchesContainer) SetMatchesPictures(matches []*imagesea
 
 	hbox := gtk.NewHBox(true, 0)
 
-	first10matches := matches[:10]
+	var first10matches []*imagesearchdal.DescriptorWithMatchScore
+	if len(matches) < 10 {
+		first10matches = matches
+	} else {
+		first10matches = matches[:10]
+	}
 	for _, match := range first10matches {
 
 		picture, err := getImage(match.Descriptor.LastDiskLocation, matchXSize, matchYSize)

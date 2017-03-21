@@ -2,7 +2,6 @@ package imagesearchdal
 
 import (
 	"image-search-app/imagesearch"
-	"log"
 
 	"image-search-app/imagesearch/searchers"
 
@@ -36,7 +35,6 @@ func (dal *ImageSearchDAL) Search(seedImageDescriptor *imagesearch.ImageDescript
 
 		return aScore < bScore
 	})
-	log.Println("after sorting")
 
 	return descriptorsWithScore
 }

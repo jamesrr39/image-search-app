@@ -14,7 +14,7 @@ func NewBins(counts []uint) Bins {
 
 	bins := make(Bins, len(counts))
 	for index, count := range counts {
-		bins[index].CountAsDecimal = float64(total) / float64(count)
+		bins[index].CountAsDecimal = float64(count) / float64(total)
 	}
 
 	return bins

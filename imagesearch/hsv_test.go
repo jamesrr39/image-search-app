@@ -91,6 +91,15 @@ func round(n float64) int64 {
 	return int64(n + 0.5)
 }
 
+func Test_round(t *testing.T) {
+	assert.Equal(t, int64(1), round(0.5))
+	assert.Equal(t, int64(3), round(3.2))
+	assert.Equal(t, int64(0), round(-0.2))
+	assert.Equal(t, int64(-1), round(-0.6))
+	assert.Equal(t, int64(-3), round(-3.2))
+	assert.Equal(t, int64(-4), round(-3.5))
+}
+
 func Test_NewHSVFromRGB(t *testing.T) {
 
 	for _, c := range generateTestColors() {
