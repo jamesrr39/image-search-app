@@ -3,7 +3,7 @@ package imagesearchgtk
 import (
 	"image"
 	"image-search-app/imagesearch"
-	"image-search-app/imagesearch/searchers"
+	"image-search-app/imagesearch/chisquaredscorers"
 	"image-search-app/imagesearchdal"
 	_ "image/gif"  // decode
 	_ "image/jpeg" // decode
@@ -37,11 +37,11 @@ type WindowOptions struct {
 
 type scoringAlgorithmDisplay struct {
 	text   string
-	scorer searchers.ImageScorer
+	scorer imagesearch.ImageScorer
 }
 
 var scoringAlgorithms = []scoringAlgorithmDisplay{
-	scoringAlgorithmDisplay{"Chi1", &searchers.ChiDistanceSearchImpl1{}},
+	scoringAlgorithmDisplay{"Chi1", &chisquaredscorers.ChiDistanceSearchImpl1{}},
 }
 
 func NewWindow(dal *imagesearchdal.ImageSearchDAL, options *WindowOptions) *Window {
@@ -76,7 +76,7 @@ func NewWindow(dal *imagesearchdal.ImageSearchDAL, options *WindowOptions) *Wind
 
 }
 
-func (window *Window) getScoringAlgorithm() searchers.ImageScorer {
+func (window *Window) getScoringAlgorithm() imagesearch.ImageScorer {
 	index := window.algorithmComboBox.GetActive()
 	return scoringAlgorithms[index].scorer
 }

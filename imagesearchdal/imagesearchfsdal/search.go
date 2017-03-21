@@ -1,19 +1,12 @@
-package imagesearchdal
+package imagesearchfsdal
 
 import (
 	"image-search-app/imagesearch"
 
-	"image-search-app/imagesearch/searchers"
-
 	"github.com/bradfitz/slice"
 )
 
-type DescriptorWithMatchScore struct {
-	MatchScore imagesearch.MatchScore
-	Descriptor *imagesearch.PersistedImageDescriptor
-}
-
-func (dal *ImageSearchDAL) Search(seedImageDescriptor *imagesearch.ImageDescriptor, scoringAlgorithm searchers.ImageScorer) []*DescriptorWithMatchScore {
+func (dal *ImageSearchFsDAL) Search(seedImageDescriptor *imagesearch.ImageDescriptor, scoringAlgorithm imagesearch.ImageScorer) []*DescriptorWithMatchScore {
 
 	var descriptorsWithScore []*DescriptorWithMatchScore
 

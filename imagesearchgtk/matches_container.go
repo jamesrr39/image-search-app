@@ -2,7 +2,7 @@ package imagesearchgtk
 
 import (
 	"fmt"
-	"image-search-app/imagesearchdal"
+	"image-search-app/imagesearch"
 	"log"
 
 	gtkimageextra "github.com/jamesrr39/goutil/image_gtk_image_bridge"
@@ -23,7 +23,7 @@ func NewMatchesContainer() *MatchesContainer {
 	return &MatchesContainer{swin, nil}
 }
 
-func (matchesContainer *MatchesContainer) SetMatchesPictures(matches []*imagesearchdal.DescriptorWithMatchScore) {
+func (matchesContainer *MatchesContainer) SetMatchesPictures(matches []*imagesearch.DescriptorWithMatchScore) {
 	if nil != matchesContainer.imageWidgetsContainer {
 		log.Printf("about to detach\n")
 		matchesContainer.imageWidgetsContainer.Destroy()
@@ -34,7 +34,7 @@ func (matchesContainer *MatchesContainer) SetMatchesPictures(matches []*imagesea
 
 	hbox := gtk.NewHBox(true, 0)
 
-	var first10matches []*imagesearchdal.DescriptorWithMatchScore
+	var first10matches []*imagesearch.DescriptorWithMatchScore
 	if len(matches) < 10 {
 		first10matches = matches
 	} else {
@@ -42,7 +42,7 @@ func (matchesContainer *MatchesContainer) SetMatchesPictures(matches []*imagesea
 	}
 	for _, match := range first10matches {
 
-		picture, err := getImage(match.Descriptor.LastDiskLocation, matchXSize, matchYSize)
+		picture, err := getImage(match.Descriptor, matchXSize, matchYSize)
 		if nil != err {
 			panic(err)
 		}
