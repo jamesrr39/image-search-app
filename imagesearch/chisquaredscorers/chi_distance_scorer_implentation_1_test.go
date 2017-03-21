@@ -1,4 +1,4 @@
-package searchers
+package chisquaredscorers
 
 import (
 	"image-search-app/imagesearch"
