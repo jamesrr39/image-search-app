@@ -37,26 +37,6 @@ func NewImageSearchCache(cachesLocation string) (*ImageSearchCache, error) {
 	return cache, nil
 }
 
-/*
-// todo private
-func (cache *ImageSearchCache) GetFromFs(sha1 string, qtyBins imagesearch.QtyBins) (*imagesearch.PersistedImageDescriptor, error) {
-	fileLocation := filepath.Join(cache.cachesLocation, descriptorCachesFolderName, sha1)
-
-	file, err := os.Open(fileLocation)
-	if nil != err {
-		return nil, err
-	}
-
-	var descriptor *imagesearch.PersistedImageDescriptor
-	err = gob.NewDecoder(file).Decode(&descriptor)
-	if nil != err {
-		return nil, err
-	}
-
-	return descriptor, nil
-}
-*/
-
 func (cache *ImageSearchCache) getCacheFilePath(sha1 string) string {
 	return filepath.Join(cache.cachesLocation, descriptorCachesFolderName, sha1)
 }
@@ -144,37 +124,6 @@ func (cache *ImageSearchCache) Get(sha1 string) *imagesearch.PersistedImageDescr
 	return cache.descriptorMap[sha1]
 }
 
-/*
-func (cache *ImageSearchCache) ScanCachesDir() error {
-	dirPath := filepath.Join(cache.cachesLocation, descriptorCachesFolderName)
-	fileInfos, err := ioutil.ReadDir(dirPath)
-	if nil != err {
-		return err
-	}
-
-	imageDescriptorMap := make(map[string]*imagesearch.PersistedImageDescriptor)
-
-	for _, fileInfo := range fileInfos {
-		file, err := os.Open(filepath.Join(cache.cachesLocation, descriptorCachesFolderName, fileInfo.Name()))
-		if nil != err {
-			return err
-		}
-
-		decoder := gob.NewDecoder(file)
-		var descriptor *imagesearch.PersistedImageDescriptor
-		err = decoder.Decode(&descriptor)
-		if nil != err {
-			return err
-		}
-
-		imageDescriptorMap[descriptor.Sha1] = descriptor
-	}
-
-	log.Printf("scanned %s and built map: %v\n", dirPath, imageDescriptorMap)
-	cache.descriptorMap = imageDescriptorMap
-	return nil
-}
-*/
 func (cache *ImageSearchCache) GetAll() []*imagesearch.PersistedImageDescriptor {
 	var descriptors []*imagesearch.PersistedImageDescriptor
 
