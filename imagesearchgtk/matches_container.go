@@ -42,7 +42,7 @@ func (matchesContainer *MatchesContainer) SetMatchesPictures(matches []*imagesea
 	}
 	for _, match := range first10matches {
 
-		picture, err := getImage(match.Descriptor, matchXSize, matchYSize)
+		picture, err := getImage(match.Descriptor.Sha1, matchXSize, matchYSize)
 		if nil != err {
 			panic(err)
 		}

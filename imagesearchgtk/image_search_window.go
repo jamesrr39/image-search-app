@@ -4,7 +4,7 @@ import (
 	"image"
 	"image-search-app/imagesearch"
 	"image-search-app/imagesearch/chisquaredscorers"
-	"image-search-app/imagesearchdal"
+	"image-search-app/imagesearchstoragedal"
 	_ "image/gif"  // decode
 	_ "image/jpeg" // decode
 	_ "image/png"  // decode
@@ -23,7 +23,7 @@ import (
 )
 
 type Window struct {
-	dal               *imagesearchdal.ImageSearchDAL
+	dal               imagesearchstoragedal.ImageSearchStorageDAL
 	window            *gtk.Window
 	seedPicture       *gtk.Image
 	matchesContainer  *MatchesContainer
@@ -44,7 +44,7 @@ var scoringAlgorithms = []scoringAlgorithmDisplay{
 	scoringAlgorithmDisplay{"Chi1", &chisquaredscorers.ChiDistanceSearchImpl1{}},
 }
 
-func NewWindow(dal *imagesearchdal.ImageSearchDAL, options *WindowOptions) *Window {
+func NewWindow(dal imagesearchstoragedal.ImageSearchStorageDAL, options *WindowOptions) *Window {
 	window := &Window{dal, gtk.NewWindow(gtk.WINDOW_TOPLEVEL), gtk.NewImage(), NewMatchesContainer(), gtk.NewComboBoxNewText()}
 	for i := 0; i < len(scoringAlgorithms); i++ {
 		window.algorithmComboBox.AppendText(scoringAlgorithms[i].text)
@@ -110,17 +110,21 @@ func (window *Window) setMainPicture(path string, qtyBins imagesearch.QtyBins) {
 	pixBuf := gtkimageextra.NewGdkPixBufFromImage(picture)
 	window.seedPicture.SetFromPixbuf(pixBuf)
 
-	descriptor, err := imagesearch.NewImageDescriptorFromFile(path, qtyBins)
-	if nil != err {
-		panic(err) // todo handle in gui
-	}
 	window.window.ShowAll()
 
-	log.Printf("image descriptor: %v\n", descriptor)
-	go func() {
-		matches := window.dal.Search(descriptor, window.getScoringAlgorithm())
+	go func(seedPicturePath string, qtyBins imagesearch.QtyBins) {
+		file, err := os.Open(seedPicturePath)
+		if nil != err {
+			panic(err)
+		}
+		defer file.Close()
+		log.Println("searching")
+		matches, err := window.dal.Search(file, qtyBins, window.getScoringAlgorithm())
+		if nil != err {
+			panic(err)
+		}
 		gdk.ThreadsEnter()
 		window.matchesContainer.SetMatchesPictures(matches)
 		gdk.ThreadsLeave()
-	}()
+	}(path, qtyBins)
 }

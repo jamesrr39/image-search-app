@@ -7,6 +7,7 @@ import (
 	_ "image/gif"  //decode
 	_ "image/jpeg" //decode
 	_ "image/png"  //decode
+	"io"
 	"io/ioutil"
 )
 
@@ -25,8 +26,8 @@ const (
 	vBinsQty = 3
 )
 */
-func NewImageDescriptorFromFile(path string, qtyBins QtyBins) (*ImageDescriptor, error) {
-	fileBytes, err := ioutil.ReadFile(path)
+func NewImageDescriptorFromFile(reader io.Reader, qtyBins QtyBins) (*ImageDescriptor, error) {
+	fileBytes, err := ioutil.ReadAll(reader)
 	if nil != err {
 		return nil, err
 	}
@@ -68,7 +69,6 @@ func NewImageDescriptor(sha1 string, picture image.Image, qtyBins QtyBins) *Imag
 			if vbinIndex == qtyBins.VBins {
 				vbinIndex--
 			}
-
 			hBinsCounts[hbinIndex]++
 			sBinsCounts[sbinIndex]++
 			vBinsCounts[vbinIndex]++
