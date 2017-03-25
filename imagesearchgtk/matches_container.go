@@ -2,7 +2,7 @@ package imagesearchgtk
 
 import (
 	"fmt"
-	"image-search-app/imagesearch"
+	"github.com/jamesrr39/image-search-app/imagesearch"
 	"log"
 
 	gtkimageextra "github.com/jamesrr39/goutil/image_gtk_image_bridge"

@@ -1,8 +1,8 @@
 package main
 
 import (
-	"image-search-app/imagesearchgtk"
-	"image-search-app/imagesearchstoragedal/imagesearchfscache"
+	"github.com/jamesrr39/image-search-app/imagesearchgtk"
+	"github.com/jamesrr39/image-search-app/imagesearchstoragedal/imagesearchfscache"
 	"log"
 	"os"
 	"path/filepath"
@@ -10,7 +10,7 @@ import (
 
 	"github.com/mattn/go-gtk/gtk"
 
-	"image-search-app/imagesearch"
+	"github.com/jamesrr39/image-search-app/imagesearch"
 
 	"github.com/jamesrr39/goutil/user"
 	"github.com/mattn/go-gtk/gdk"

@@ -2,9 +2,9 @@ package imagesearchgtk
 
 import (
 	"image"
-	"image-search-app/imagesearch"
-	"image-search-app/imagesearch/chisquaredscorers"
-	"image-search-app/imagesearchstoragedal"
+	"github.com/jamesrr39/image-search-app/imagesearch"
+	"github.com/jamesrr39/image-search-app/imagesearch/chisquaredscorers"
+	"github.com/jamesrr39/image-search-app/imagesearchstoragedal"
 	_ "image/gif"  // decode
 	_ "image/jpeg" // decode
 	_ "image/png"  // decode
@@ -17,7 +17,7 @@ import (
 
 	"github.com/disintegration/imaging"
 
-	"image-processing/imageprocessingutil"
+	"github.com/jamesrr39/goutil/image-processing/imageprocessingutil"
 
 	"github.com/mattn/go-gtk/gtk"
 )

@@ -1,7 +1,7 @@
 package chisquaredscorers
 
 import (
-	"image-search-app/imagesearch"
+	"github.com/jamesrr39/image-search-app/imagesearch"
 	"log"
 	"math"
 )

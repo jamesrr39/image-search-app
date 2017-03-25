@@ -5,7 +5,7 @@ import (
 	"crypto/sha1"
 	"encoding/gob"
 	"encoding/hex"
-	"image-search-app/imagesearch"
+	"github.com/jamesrr39/image-search-app/imagesearch"
 	"io"
 	"io/ioutil"
 	"log"
@@ -16,7 +16,7 @@ import (
 )
 
 func init() {
-	gob.RegisterName("image-search-app/imagesearch.LocalLocation", &imagesearch.LocalLocation{}) // locallocation
+	gob.RegisterName("github.com/jamesrr39/image-search-app/imagesearch.LocalLocation", &imagesearch.LocalLocation{}) // locallocation
 }
 
 type ImageSearchFSCache struct {

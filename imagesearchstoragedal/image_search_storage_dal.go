@@ -1,7 +1,7 @@
 package imagesearchstoragedal
 
 import (
-	"image-search-app/imagesearch"
+	"github.com/jamesrr39/image-search-app/imagesearch"
 	"io"
 )
 

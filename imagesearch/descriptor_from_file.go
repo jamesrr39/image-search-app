@@ -5,12 +5,13 @@ import (
 	"crypto/sha1"
 	"encoding/hex"
 	"image"
-	"image-processing/imageprocessingutil" // todo move this package to shared
-	_ "image/gif"                          // decode
-	_ "image/jpeg"                         // decode
-	_ "image/png"                          // decode
+	_ "image/gif"  // decode
+	_ "image/jpeg" // decode
+	_ "image/png"  // decode
 	"io"
 	"io/ioutil"
+
+	"github.com/jamesrr39/goutil/image-processing/imageprocessingutil"
 
 	"github.com/rwcarlsen/goexif/exif"
 )
