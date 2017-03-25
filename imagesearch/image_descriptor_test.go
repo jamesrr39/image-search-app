@@ -3,6 +3,7 @@ package imagesearch
 import (
 	"image/color"
 	"math"
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -12,7 +13,11 @@ func Test_NewImageDescriptor(t *testing.T) {
 	qtyBins := QtyBins{8, 12, 3}
 
 	filePath := "IMG_20160616_130244.jpg"
-	descriptor, err := NewImageDescriptorFromFile(filePath, qtyBins)
+	file, err := os.Open(filePath)
+	assert.Nil(t, err)
+	defer file.Close()
+
+	descriptor, err := NewImageDescriptorFromFile(file, qtyBins)
 	assert.Nil(t, err)
 
 	for _, hBin := range descriptor.HBins {
