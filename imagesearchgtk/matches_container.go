@@ -23,7 +23,7 @@ func NewMatchesContainer() *MatchesContainer {
 	return &MatchesContainer{swin, nil}
 }
 
-func (matchesContainer *MatchesContainer) SetMatchesPictures(matches []*imagesearch.DescriptorWithMatchScore) {
+func (matchesContainer *MatchesContainer) SetMatchesPictures(matches []*imagesearch.PersistedDescriptorWithMatchScore) {
 	if nil != matchesContainer.imageWidgetsContainer {
 		log.Printf("about to detach\n")
 		matchesContainer.imageWidgetsContainer.Destroy()
@@ -34,7 +34,7 @@ func (matchesContainer *MatchesContainer) SetMatchesPictures(matches []*imagesea
 
 	hbox := gtk.NewHBox(true, 0)
 
-	var first10matches []*imagesearch.DescriptorWithMatchScore
+	var first10matches []*imagesearch.PersistedDescriptorWithMatchScore
 	if len(matches) < 10 {
 		first10matches = matches
 	} else {
@@ -42,7 +42,7 @@ func (matchesContainer *MatchesContainer) SetMatchesPictures(matches []*imagesea
 	}
 	for _, match := range first10matches {
 
-		picture, err := getImage(match.Descriptor.Sha1, matchXSize, matchYSize)
+		picture, err := getImage(match.Descriptor.LastKnownLocation(), matchXSize, matchYSize)
 		if nil != err {
 			panic(err)
 		}

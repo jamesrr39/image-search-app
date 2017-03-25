@@ -1,6 +1,10 @@
 package imagesearch
 
-type PersistedImageDescriptor interface {
-	LastKnownLocation() string
-	Protocol() string
+type PersistedImageDescriptor struct {
+	*ImageDescriptor
+	Location
+}
+
+func NewPersistedImageDescriptor(descriptor *ImageDescriptor, location Location) *PersistedImageDescriptor {
+	return &PersistedImageDescriptor{descriptor, location}
 }

@@ -87,7 +87,7 @@ func getImage(path string, xSize, ySize int) (image.Image, error) {
 		return nil, err
 	}
 	defer file.Close()
-
+	log.Printf("getting image %s\n", path)
 	picture, err := imageprocessingutil.RotateAndTransformPicture(file)
 	if nil != err {
 		return nil, err
@@ -119,10 +119,11 @@ func (window *Window) setMainPicture(path string, qtyBins imagesearch.QtyBins) {
 		}
 		defer file.Close()
 		log.Println("searching")
-		matches, err := window.dal.Search(file, qtyBins, window.getScoringAlgorithm())
+		matches, err := window.dal.Search(file, qtyBins, window.getScoringAlgorithm(), imagesearch.NewLocalLocation(path))
 		if nil != err {
 			panic(err)
 		}
+		log.Printf("matches: %v\n", matches)
 		gdk.ThreadsEnter()
 		window.matchesContainer.SetMatchesPictures(matches)
 		gdk.ThreadsLeave()

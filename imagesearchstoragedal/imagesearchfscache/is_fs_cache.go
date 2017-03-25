@@ -8,9 +8,16 @@ import (
 	"image-search-app/imagesearch"
 	"io"
 	"io/ioutil"
+	"log"
 	"os"
 	"path/filepath"
+
+	"github.com/bradfitz/slice"
 )
+
+func init() {
+	gob.RegisterName("image-search-app/imagesearch.LocalLocation", &imagesearch.LocalLocation{}) // locallocation
+}
 
 type ImageSearchFSCache struct {
 	cachesLocation string
@@ -21,7 +28,7 @@ func NewImageSearchFSCache(cachesLocation string) *ImageSearchFSCache {
 	return &ImageSearchFSCache{cachesLocation, newImageSearchCacheMap()}
 }
 
-func (cache *ImageSearchFSCache) Ensure(file io.Reader, qtyBins imagesearch.QtyBins) (*imagesearch.ImageDescriptor, error) {
+func (cache *ImageSearchFSCache) Ensure(file io.Reader, qtyBins imagesearch.QtyBins, location imagesearch.Location) (*imagesearch.PersistedImageDescriptor, error) {
 	fileBytes, err := ioutil.ReadAll(file)
 	if nil != err {
 		return nil, err
@@ -47,12 +54,17 @@ func (cache *ImageSearchFSCache) Ensure(file io.Reader, qtyBins imagesearch.QtyB
 		return nil, err
 	}
 
+	if nil == err && nil != descriptor {
+		cache.memoryCache.Add(descriptor.Sha1, descriptor)
+		return descriptor, nil
+	}
+
 	if nil != descriptor {
 		return descriptor, nil
 	}
 
 	// otherwise make a new descriptor and persist it
-	descriptor, err = imagesearch.FileDescriptorFromFile(bytes.NewBuffer(fileBytes), qtyBins)
+	descriptor, err = imagesearch.FileDescriptorFromFile(bytes.NewBuffer(fileBytes), qtyBins, location)
 	if nil != err {
 		return nil, err
 	}
@@ -66,23 +78,30 @@ func (cache *ImageSearchFSCache) Ensure(file io.Reader, qtyBins imagesearch.QtyB
 
 }
 
-func (cache *ImageSearchFSCache) Search(file io.Reader, qtyBins imagesearch.QtyBins, scoringAlgorithm imagesearch.ImageScorer) ([]*imagesearch.DescriptorWithMatchScore, error) {
-	seedDescriptor, err := cache.Ensure(file, qtyBins)
+func (cache *ImageSearchFSCache) Search(file io.Reader, qtyBins imagesearch.QtyBins, scoringAlgorithm imagesearch.ImageScorer, location imagesearch.Location) ([]*imagesearch.PersistedDescriptorWithMatchScore, error) {
+	seedDescriptor, err := cache.Ensure(file, qtyBins, location)
 	if nil != err {
 		return nil, err
 	}
 
-	var descriptorsWithScores []*imagesearch.DescriptorWithMatchScore
+	var descriptorsWithScores []*imagesearch.PersistedDescriptorWithMatchScore
 	for _, descriptor := range cache.memoryCache.GetAll() {
-		score := scoringAlgorithm.Score(seedDescriptor, descriptor)
+		score := scoringAlgorithm.Score(seedDescriptor.ImageDescriptor, descriptor.ImageDescriptor)
 
-		descriptorsWithScores = append(descriptorsWithScores, imagesearch.NewDescriptorWithMatchScore(score, descriptor))
+		descriptorsWithScores = append(descriptorsWithScores, imagesearch.NewPersistedDescriptorWithMatchScore(score, descriptor))
 	}
+
+	slice.Sort(descriptorsWithScores, func(i, j int) bool {
+		return descriptorsWithScores[i].MatchScore < descriptorsWithScores[j].MatchScore
+	})
 	return descriptorsWithScores, nil
 }
 
-func (cache *ImageSearchFSCache) writeToDisk(descriptor *imagesearch.ImageDescriptor) error {
-	file, err := os.Create(filepath.Join(cache.cachesLocation, descriptor.Sha1))
+func (cache *ImageSearchFSCache) writeToDisk(descriptor *imagesearch.PersistedImageDescriptor) error {
+	descriptorPath := filepath.Join(cache.cachesLocation, descriptor.Sha1)
+
+	log.Printf("writing descriptor to disk at %s\n", descriptorPath)
+	file, err := os.Create(descriptorPath)
 	if nil != err {
 		return err
 	}
@@ -96,8 +115,10 @@ func (cache *ImageSearchFSCache) writeToDisk(descriptor *imagesearch.ImageDescri
 	return nil
 }
 
-func (cache *ImageSearchFSCache) readFromDisk(id string) (*imagesearch.ImageDescriptor, error) {
-	file, err := os.Open(filepath.Join(cache.cachesLocation, id))
+func (cache *ImageSearchFSCache) readFromDisk(id string) (*imagesearch.PersistedImageDescriptor, error) {
+	descriptorPath := filepath.Join(cache.cachesLocation, id)
+
+	file, err := os.Open(descriptorPath)
 	if nil != err {
 		if os.IsNotExist(err) {
 			return nil, nil // not in on-disk cache yet
@@ -106,7 +127,9 @@ func (cache *ImageSearchFSCache) readFromDisk(id string) (*imagesearch.ImageDesc
 	}
 	defer file.Close()
 
-	var descriptor imagesearch.ImageDescriptor
+	log.Printf("reading descriptor from %s\n", descriptorPath)
+
+	var descriptor imagesearch.PersistedImageDescriptor
 	err = gob.NewDecoder(file).Decode(&descriptor)
 	if nil != err {
 		return nil, err

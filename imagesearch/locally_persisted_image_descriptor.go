@@ -1,17 +1,17 @@
 package imagesearch
 
-type LocallyPersistedImageDescriptor struct {
-	lastKnownLocation string
+type LocalLocation struct {
+	LocationOnDisk string
 }
 
-func NewLocallyPersistedImageDescriptor(lastKnownLocation string) *LocallyPersistedImageDescriptor {
-	return &LocallyPersistedImageDescriptor{lastKnownLocation}
+func NewLocalLocation(lastKnownLocation string) *LocalLocation {
+	return &LocalLocation{lastKnownLocation}
 }
 
-func (d *LocallyPersistedImageDescriptor) LastKnownLocation() string {
-	return d.lastKnownLocation
+func (d *LocalLocation) LastKnownLocation() string {
+	return d.LocationOnDisk
 }
 
-func (d *LocallyPersistedImageDescriptor) Protocol() string {
+func (d *LocalLocation) Protocol() string {
 	return "file://"
 }

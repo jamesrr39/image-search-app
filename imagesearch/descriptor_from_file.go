@@ -15,7 +15,7 @@ import (
 	"github.com/rwcarlsen/goexif/exif"
 )
 
-func FileDescriptorFromFile(file io.Reader, qtyBins QtyBins) (*ImageDescriptor, error) {
+func FileDescriptorFromFile(file io.Reader, qtyBins QtyBins, location Location) (*PersistedImageDescriptor, error) {
 
 	fileBytes, err := ioutil.ReadAll(file) // todo scanners
 	if nil != err {
@@ -40,7 +40,7 @@ func FileDescriptorFromFile(file io.Reader, qtyBins QtyBins) (*ImageDescriptor, 
 		return nil, err
 	}
 
-	return NewImageDescriptor(fileHash, picture, qtyBins), nil
+	return NewPersistedImageDescriptor(NewImageDescriptor(fileHash, picture, qtyBins), location), nil
 }
 
 func HashOfFile(file io.Reader) (string, error) {

@@ -1,10 +1,10 @@
 package imagesearch
 
-type DescriptorWithMatchScore struct {
+type PersistedDescriptorWithMatchScore struct {
 	MatchScore MatchScore
-	Descriptor *ImageDescriptor
+	Descriptor *PersistedImageDescriptor
 }
 
-func NewDescriptorWithMatchScore(matchScore MatchScore, descriptor *ImageDescriptor) *DescriptorWithMatchScore {
-	return &DescriptorWithMatchScore{matchScore, descriptor}
+func NewPersistedDescriptorWithMatchScore(matchScore MatchScore, descriptor *PersistedImageDescriptor) *PersistedDescriptorWithMatchScore {
+	return &PersistedDescriptorWithMatchScore{matchScore, descriptor}
 }

@@ -30,7 +30,12 @@ func main() {
 	kingpin.Parse()
 
 	var err error
-	cachesLocation, err = user.ExpandUser("~/.cache/github.com/jamesrr39/image-search-app")
+	cachesLocation, err = user.ExpandUser("~/.cache/github.com/jamesrr39/image-search-app/descriptor_caches")
+	if nil != err {
+		panic(err)
+	}
+
+	err = os.MkdirAll(cachesLocation, 0700)
 	if nil != err {
 		panic(err)
 	}
@@ -66,7 +71,7 @@ func run() error {
 				return err
 			}
 			defer file.Close()
-			_, err = cache.Ensure(file, qtyBins)
+			_, err = cache.Ensure(file, qtyBins, imagesearch.NewLocalLocation(path))
 			if nil != err {
 				return err
 			}
