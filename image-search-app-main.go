@@ -1,10 +1,16 @@
 package main
 
 import (
-	"image-search-app/imagesearchdal"
-	"image-search-app/imagesearchgtk"
+	"github.com/jamesrr39/image-search-app/imagesearchgtk"
+	"github.com/jamesrr39/image-search-app/imagesearchstoragedal/imagesearchfscache"
+	"log"
+	"os"
+	"path/filepath"
+	"strings"
 
 	"github.com/mattn/go-gtk/gtk"
+
+	"github.com/jamesrr39/image-search-app/imagesearch"
 
 	"github.com/jamesrr39/goutil/user"
 	"github.com/mattn/go-gtk/gdk"
@@ -13,16 +19,23 @@ import (
 )
 
 var (
-	rootPath        = kingpin.Flag("rootpath", "set a path to scan under. If blank, only the cache will be used for the search").String()
+	rootPath        = kingpin.Arg("rootpath", "set a path to scan under").Required().String()
 	seedPicturePath = kingpin.Arg("seed picture path", "filepath to the seed picture to search by. If blank, no picture is selected").String()
 	cachesLocation  string
 )
+
+var qtyBins = imagesearch.NewQtyBins(8, 12, 3)
 
 func main() {
 	kingpin.Parse()
 
 	var err error
-	cachesLocation, err = user.ExpandUser("~/.cache/github.com/jamesrr39/image-search-app")
+	cachesLocation, err = user.ExpandUser("~/.cache/github.com/jamesrr39/image-search-app/descriptor_caches")
+	if nil != err {
+		panic(err)
+	}
+
+	err = os.MkdirAll(cachesLocation, 0700)
 	if nil != err {
 		panic(err)
 	}
@@ -35,25 +48,49 @@ func main() {
 
 func run() error {
 
-	dal, err := imagesearchdal.NewImageSearchDAL(cachesLocation)
+	cache := imagesearchfscache.NewImageSearchFSCache(cachesLocation)
+
+	expandedRootPath, err := user.ExpandUser(*rootPath)
 	if nil != err {
 		return err
 	}
 
-	if "" != *rootPath {
-		err := dal.ScanDir(*rootPath)
+	err = filepath.Walk(expandedRootPath, func(path string, fileInfo os.FileInfo, err error) error {
 		if nil != err {
 			return err
 		}
+
+		if fileInfo.IsDir() {
+			return nil
+		}
+
+		switch strings.ToLower(filepath.Ext(fileInfo.Name())) {
+		case ".png", ".jpg", ".jpeg", ".gif":
+			file, err := os.Open(path)
+			if nil != err {
+				return err
+			}
+			defer file.Close()
+			_, err = cache.Ensure(file, qtyBins, imagesearch.NewLocalLocation(path))
+			if nil != err {
+				return err
+			}
+		default:
+			log.Printf("skipping %s\n", path)
+		}
+		return nil
+	})
+	if nil != err {
+		return err
 	}
 
-	options := &imagesearchgtk.WindowOptions{SeedPicturePath: *seedPicturePath}
+	options := &imagesearchgtk.WindowOptions{SeedPicturePath: *seedPicturePath, QtyBins: qtyBins}
 
 	gtk.Init(nil)
 
 	glib.ThreadInit()
 	gdk.ThreadsEnter()
-	imagesearchgtk.NewWindow(dal, options)
+	imagesearchgtk.NewWindow(cache, options)
 
 	gtk.Main()
 	return nil

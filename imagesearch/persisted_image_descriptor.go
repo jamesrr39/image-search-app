@@ -2,5 +2,9 @@ package imagesearch
 
 type PersistedImageDescriptor struct {
 	*ImageDescriptor
-	LastDiskLocation string
+	Location
+}
+
+func NewPersistedImageDescriptor(descriptor *ImageDescriptor, location Location) *PersistedImageDescriptor {
+	return &PersistedImageDescriptor{descriptor, location}
 }

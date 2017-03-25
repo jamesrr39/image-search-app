@@ -9,20 +9,39 @@ import (
 	_ "image/jpeg" // decode
 	_ "image/png"  // decode
 	"io"
+	"io/ioutil"
+
+	"github.com/jamesrr39/goutil/image-processing/imageprocessingutil"
+
+	"github.com/rwcarlsen/goexif/exif"
 )
 
-func FileDescriptorFromFileBytes(fileBytes []byte) (*ImageDescriptor, error) {
+func FileDescriptorFromFile(file io.Reader, qtyBins QtyBins, location Location) (*PersistedImageDescriptor, error) {
+
+	fileBytes, err := ioutil.ReadAll(file) // todo scanners
+	if nil != err {
+		return nil, err
+	}
 
 	picture, _, err := image.Decode(bytes.NewBuffer(fileBytes))
 	if nil != err {
 		return nil, err
 	}
 
+	exifData, err := exif.Decode(bytes.NewBuffer(fileBytes))
+	if nil == err && nil != exifData {
+		pic, err := imageprocessingutil.RotateAndTransformPictureByExifData(picture, *exifData)
+		if nil == err {
+			picture = pic
+		}
+	}
+
 	fileHash, err := HashOfFile(bytes.NewBuffer(fileBytes))
 	if nil != err {
 		return nil, err
 	}
-	return NewImageDescriptor(fileHash, picture), nil
+
+	return NewPersistedImageDescriptor(NewImageDescriptor(fileHash, picture, qtyBins), location), nil
 }
 
 func HashOfFile(file io.Reader) (string, error) {
