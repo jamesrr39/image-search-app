@@ -2,6 +2,14 @@ package imagesearch
 
 type Bins []Bin
 
+func NewBinsFromValues(values []float64) Bins {
+	var bins Bins
+	for _, value := range values {
+		bins = append(bins, Bin{value})
+	}
+	return bins
+}
+
 type Bin struct {
 	CountAsDecimal float64
 }

@@ -9,6 +9,8 @@ import (
 	_ "image/png"  //decode
 	"io"
 	"io/ioutil"
+
+	"github.com/jamesrr39/semaphore"
 )
 
 type ImageDescriptor struct {
@@ -19,14 +21,11 @@ type ImageDescriptor struct {
 	QtyBins
 }
 
-/*
-const (
-	hBinsQty = 8 // 0 - 44, 45 - 89, ... 315 - 360
-	sBinsQty = 12
-	vBinsQty = 3
-)
-*/
-func NewImageDescriptorFromFile(reader io.Reader, qtyBins QtyBins) (*ImageDescriptor, error) {
+func NewImageDescriptor(sha1 string, hBins, sBins, vBins Bins, qtyBins QtyBins) *ImageDescriptor {
+	return &ImageDescriptor{sha1, hBins, sBins, vBins, qtyBins}
+}
+
+func NewImageDescriptorFromFile(reader io.Reader, qtyBins QtyBins, maxGoRoutines uint) (*ImageDescriptor, error) {
 	fileBytes, err := ioutil.ReadAll(reader)
 	if nil != err {
 		return nil, err
@@ -42,38 +41,45 @@ func NewImageDescriptorFromFile(reader io.Reader, qtyBins QtyBins) (*ImageDescri
 		return nil, err
 	}
 
-	return NewImageDescriptor(hash, picture, qtyBins), nil
+	return NewImageDescriptorFromPicture(hash, picture, qtyBins, maxGoRoutines), nil
 
 }
 
-func NewImageDescriptor(sha1 string, picture image.Image, qtyBins QtyBins) *ImageDescriptor {
+func NewImageDescriptorFromPicture(sha1 string, picture image.Image, qtyBins QtyBins, maxGoRoutines uint) *ImageDescriptor {
 
 	hBinsCounts := make([]uint, qtyBins.HBins)
 	sBinsCounts := make([]uint, qtyBins.SBins)
 	vBinsCounts := make([]uint, qtyBins.VBins)
 
+	sema := semaphore.NewSemaphore(maxGoRoutines)
+
 	for y := 0; y < picture.Bounds().Max.Y; y++ {
 		for x := 0; x < picture.Bounds().Max.X; x++ {
-			c := colorToRGBA(picture.At(x, y))
-			hsvColor := NewHSVFromRGB(c)
+			sema.Add()
+			go func() {
+				defer sema.Done()
+				c := colorToRGBA(picture.At(x, y))
+				hsvColor := NewHSVFromRGB(c)
 
-			hbinIndex := uint((hsvColor.H / float64(360)) * float64(qtyBins.HBins))
-			if hbinIndex == qtyBins.HBins {
-				hbinIndex--
-			}
-			sbinIndex := uint((hsvColor.S / float64(1)) * float64(qtyBins.SBins))
-			if sbinIndex == qtyBins.SBins {
-				sbinIndex--
-			}
-			vbinIndex := uint((hsvColor.V / float64(1)) * float64(qtyBins.VBins))
-			if vbinIndex == qtyBins.VBins {
-				vbinIndex--
-			}
-			hBinsCounts[hbinIndex]++
-			sBinsCounts[sbinIndex]++
-			vBinsCounts[vbinIndex]++
+				hbinIndex := uint((hsvColor.H / float64(360)) * float64(qtyBins.HBins))
+				if hbinIndex == qtyBins.HBins {
+					hbinIndex--
+				}
+				sbinIndex := uint((hsvColor.S / float64(1)) * float64(qtyBins.SBins))
+				if sbinIndex == qtyBins.SBins {
+					sbinIndex--
+				}
+				vbinIndex := uint((hsvColor.V / float64(1)) * float64(qtyBins.VBins))
+				if vbinIndex == qtyBins.VBins {
+					vbinIndex--
+				}
+				hBinsCounts[hbinIndex]++
+				sBinsCounts[sbinIndex]++
+				vBinsCounts[vbinIndex]++
+			}()
 		}
 	}
+	sema.Wait()
 
 	return &ImageDescriptor{
 		Sha1:  sha1,
