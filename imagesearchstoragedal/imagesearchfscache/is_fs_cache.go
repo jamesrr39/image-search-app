@@ -5,12 +5,14 @@ import (
 	"crypto/sha1"
 	"encoding/gob"
 	"encoding/hex"
-	"github.com/jamesrr39/image-search-app/imagesearch"
 	"io"
 	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
+	"runtime"
+
+	"github.com/jamesrr39/image-search-app/imagesearch"
 
 	"github.com/bradfitz/slice"
 )
@@ -64,7 +66,7 @@ func (cache *ImageSearchFSCache) Ensure(file io.Reader, qtyBins imagesearch.QtyB
 	}
 
 	// otherwise make a new descriptor and persist it
-	descriptor, err = imagesearch.FileDescriptorFromFile(bytes.NewBuffer(fileBytes), qtyBins, location)
+	descriptor, err = imagesearch.FileDescriptorFromFile(bytes.NewBuffer(fileBytes), qtyBins, location, uint(runtime.NumCPU()))
 	if nil != err {
 		return nil, err
 	}

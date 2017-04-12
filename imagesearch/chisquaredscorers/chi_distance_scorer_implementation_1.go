@@ -1,12 +1,17 @@
 package chisquaredscorers
 
 import (
-	"github.com/jamesrr39/image-search-app/imagesearch"
 	"log"
 	"math"
+
+	"github.com/jamesrr39/image-search-app/imagesearch"
 )
 
 type ChiDistanceSearchImpl1 struct {
+}
+
+func NewChiDistanceSearchImpl1() *ChiDistanceSearchImpl1 {
+	return &ChiDistanceSearchImpl1{}
 }
 
 // (x-y)^2 /  x+y
